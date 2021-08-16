@@ -1,7 +1,7 @@
 class Tile
     attr_reader :value
 
-    def initialize(hidden_value = "X")
+    def initialize(hidden_value = "■")
         @hidden_value = hidden_value
         @revealed = false
         @value = nil

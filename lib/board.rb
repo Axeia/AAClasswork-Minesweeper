@@ -86,8 +86,6 @@ class Board
         text += divider
         @grid.each.with_index do |arr, i| 
             text += i.to_s + ' |'
-            # p arr
-            p arr
             arr.each{ |tile| text += tile.to_s + '|' }
             text += "\n#{divider}"
         end
@@ -97,10 +95,42 @@ class Board
     def get_bomb_locations
         
     end
+
+    def reveal_node(v,h, visited_nodes = [])
+        if in_bounds?([v, h])
+            @grid[v][h].reveal
+            unless @grid[v][h].is_bomb?
+                adj_bomb_count = adjacent_bomb_count([v,h])
+                if adj_bomb_count > 0
+                    @grid[v][h].value = adj_bomb_count.to_s
+                else
+                    @grid[v][h].value = '▩'
+
+                    # riple outwards
+                    nodes_adjacent_nodes = adjacent_non_bomb_nodes([v, h])
+                    nodes_adjacent_nodes.each do |n| 
+                        next if visited_nodes.include?(n)
+                        visited_nodes << n
+                        reveal_node(n[0], n[1], visited_nodes)
+                    end
+                end
+
+            end
+        end
+    end
+
+    def adjacent_non_bomb_nodes(node)
+        nodes = adjacent_nodes(node)
+        nodes.delete_if{ |v| @grid[v[0]][v[1]].is_bomb? }
+        nodes
+    end
 end
 
 if __FILE__ == $0
-    board = Board.new(9, 3)
+    board = Board.new(9, 9)
+    # board.reveal
+    board.reveal_node(4, 3)
+    puts board.render
     board.reveal
     puts board.render
 end
