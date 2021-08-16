@@ -23,6 +23,34 @@ class Board
         end
     end
 
+    def adjacent_nodes(node)
+        v, h = node
+        adjacent_nodes = []
+        
+        possibly_adjacent_nodes = {
+            :top_left_node     => [v-1, h-1],
+            :top_node          => [v-1, h],
+            :top_right_node    => [v-1, h+1],
+
+            :left_node         => [v, h-1],
+            :right_node        => [v, h+1],
+    
+            :bottom_left_node  => [v+1, h-1],
+            :bottom_node       => [v+1, h],
+            :bottom_right_node => [v+1, h+1]
+        }
+        possibly_adjacent_nodes.select{ |k, adj_node| in_bounds?(adj_node) }\
+        .values
+    end
+
+    def in_bounds?(node)        
+        v, h = node
+        return false unless v >= 0 and v < @size 
+        #Change this if support for non-square boards is ever added
+        return false unless h >= 0 and h < @size 
+        true
+    end
+
     def calculate_field_distances_to_bomb
         #todo implement
     end
@@ -42,4 +70,5 @@ end
 if __FILE__ == $0
     board = Board.new()
     puts board.render
+    p board.adjacent_nodes([0,0])
 end
