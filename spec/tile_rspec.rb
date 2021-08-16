@@ -28,3 +28,21 @@ describe "Tile#to_s" do
         expect(tile_1.to_s).to eq ("1")
     end
 end
+
+describe "Tile#bombify" do
+    it "Tests Tile#bombify" do
+        tile_1 = Tile.new("D")
+        tile_1.value = '1'
+        expect(tile_1.to_s).to eq ("D")
+        tile_1.reveal
+        expect(tile_1.to_s).to eq ("1")
+        expect(tile_1.is_bomb?).to eq (false)
+        tile_1.bombify
+        expect(tile_1.to_s).to eq ("●")
+        expect(tile_1.is_bomb?).to eq (true)
+        tile_1.value = '1'
+        expect(tile_1.is_bomb?).to eq (false)
+        tile_1.value = '●'
+        expect(tile_1.is_bomb?).to eq (true)
+    end
+end

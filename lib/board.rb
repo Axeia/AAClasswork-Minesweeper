@@ -1,23 +1,28 @@
+require_relative 'tile.rb'
+
 class Board
 
     def initialize(size = 9, number_of_bombs = nil)
-        @grid = Array.new(size){ Array.new(size) {'x'} }
+        @grid = Array.new(size){ Array.new(size) { Tile.new() } }
         @number_of_bombs = number_of_bombs || size
         @size = size
-        @bomb = '●'
         populate_grid
     end
 
     def populate_grid()
         add_bombs
-        # calculate_number_of_neighbouring_bombs
+        calculate_number_of_neighbouring_bombs
+    end
+
+    def reveal
+        @grid.flatten.each{ |tile| tile.reveal }
     end
 
     def calculate_number_of_neighbouring_bombs
         @grid.each.with_index do |row, v|
-            row.each.with_index do |value, h|
-                if value != @bomb
-                    @grid[v][h] = adjacent_bomb_count([v, h])
+            row.each.with_index do |tile, h|
+                unless tile.is_bomb?
+                    tile.value = adjacent_bomb_count([v, h]).to_s
                 end
             end
         end
@@ -29,7 +34,7 @@ class Board
         .take(@number_of_bombs)
         #Place bombs
         bomb_positions.each do |bomb_position| 
-            @grid[bomb_position[0]][bomb_position[1]] = @bomb
+            @grid[bomb_position[0]][bomb_position[1]].bombify
         end
     end
 
@@ -37,7 +42,7 @@ class Board
         count = 0
         adjacent_nodes(node).each do |node_index| 
             v, h = node_index
-            count += 1 if @grid[v][h] == @bomb
+            count += 1 if @grid[v][h].is_bomb?
         end
         count
     end
@@ -75,19 +80,27 @@ class Board
     end
 
     def render
-        text = '  ' + (0...@size).to_a.join(' ') + "\n"
+        text = '   ' + (0...@size).to_a.join(' ') + "\n"
         # +----------------+ to board size
-        divider = " +" + ('-' * ((@size * 2) - 1)) + "+\n"
+        divider = "  +" + ('-' * ((@size * 2) - 1)) + "+\n"
         text += divider
         @grid.each.with_index do |arr, i| 
-            text += i.to_s + "|#{arr.join('|')}|\n#{divider}"
+            text += i.to_s + ' |'
+            # p arr
+            p arr
+            arr.each{ |tile| text += tile.to_s + '|' }
+            text += "\n#{divider}"
         end
         text
+    end
+
+    def get_bomb_locations
+        
     end
 end
 
 if __FILE__ == $0
     board = Board.new(9, 3)
+    board.reveal
     puts board.render
-    p board.adjacent_nodes([0,0])
 end
