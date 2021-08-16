@@ -1,6 +1,6 @@
 class Board
 
-    def initialize(size = 3, number_of_bombs = nil)
+    def initialize(size = 9, number_of_bombs = nil)
         @grid = Array.new(size){ Array.new(size) {'x'} }
         @number_of_bombs = number_of_bombs || size
         @size = size
@@ -10,7 +10,17 @@ class Board
 
     def populate_grid()
         add_bombs
-        calculate_field_distances_to_bomb
+        # calculate_number_of_neighbouring_bombs
+    end
+
+    def calculate_number_of_neighbouring_bombs
+        @grid.each.with_index do |row, v|
+            row.each.with_index do |value, h|
+                if value != @bomb
+                    @grid[v][h] = adjacent_bomb_count([v, h])
+                end
+            end
+        end
     end
 
     def add_bombs
@@ -21,6 +31,15 @@ class Board
         bomb_positions.each do |bomb_position| 
             @grid[bomb_position[0]][bomb_position[1]] = @bomb
         end
+    end
+
+    def adjacent_bomb_count(node)
+        count = 0
+        adjacent_nodes(node).each do |node_index| 
+            v, h = node_index
+            count += 1 if @grid[v][h] == @bomb
+        end
+        count
     end
 
     def adjacent_nodes(node)
@@ -68,7 +87,7 @@ class Board
 end
 
 if __FILE__ == $0
-    board = Board.new()
+    board = Board.new(9, 3)
     puts board.render
     p board.adjacent_nodes([0,0])
 end
