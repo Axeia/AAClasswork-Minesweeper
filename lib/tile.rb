@@ -1,11 +1,13 @@
 class Tile
     attr_reader :value
+    attr_accessor :flag
 
     def initialize(hidden_value = "■")
         @hidden_value = hidden_value
         @revealed = false
         @value = nil
         @bomb = false
+        @flag = false
     end
 
     def reveal
@@ -31,6 +33,9 @@ class Tile
     end
 
     def to_s
+        if flag
+            return '⚑'
+        end
         revealed? ? @value : @hidden_value
     end
 end

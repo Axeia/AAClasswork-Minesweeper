@@ -101,7 +101,8 @@ class Board
     end
 
     # Returns true is the node was a bomb
-    def reveal_node(v,h, visited_nodes = [])
+    def reveal_node(node, visited_nodes = [])
+        v,h = node
         if in_bounds?([v, h])
             @grid[v][h].reveal
             if @grid[v][h].is_bomb?
@@ -118,7 +119,7 @@ class Board
                     nodes_adjacent_nodes.each do |n| 
                         next if visited_nodes.include?(n)
                         visited_nodes << n
-                        reveal_node(n[0], n[1], visited_nodes)
+                        reveal_node(n, visited_nodes)
                     end
                 end
             end
@@ -143,12 +144,22 @@ class Board
             (tile.revealed? && !tile.is_bomb?)
         end
     end
+
+    def flag_node(node)
+        v, h = node
+        @grid[v][h].flag = !@grid[v][h].flag
+    end
+
+    def is_flag(node)
+        v, h = node
+        @grid[v][h].flag
+    end
 end
 
 if __FILE__ == $0
     board = Board.new(9, 9)
     # board.reveal
-    board.reveal_node(4, 3)
+    board.reveal_node([4, 3])
     puts board.render
     board.reveal
     puts board.render

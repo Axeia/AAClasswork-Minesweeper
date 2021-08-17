@@ -82,7 +82,7 @@ describe "Board#reveal_node" do
     it "Checks if the node gets revealed and if it's neighbouring cells get \
     revealed if they aren't a bomb. If they are their value should be the\
     number of bombs" do
-        expect(board.reveal_node(0,0)).to eq(false) 
+        expect(board.reveal_node([0,0])).to eq(false) 
         expect(tile_0.revealed?).to eq (true)
         expect(tile_1.revealed?).to eq (true)
         expect(tile_2.revealed?).to eq (true)    
@@ -110,7 +110,7 @@ end
 describe "Board#bombs_revealed?" do
     it "True if a (any) bomb is revealed - the loss condition" do
         expect(board.bombs_revealed?).to eq(false)        
-        expect(board.reveal_node(2,2)).to eq(true) # Hitting bomb
+        expect(board.reveal_node([2,2])).to eq(true) # Hitting bomb
         expect(board.bombs_revealed?).to eq (true)
     end
 end

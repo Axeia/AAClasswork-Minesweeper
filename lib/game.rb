@@ -1,4 +1,5 @@
 require_relative 'board.rb'
+require 'set'
 
 class Game
     attr_accessor :board
@@ -9,7 +10,7 @@ class Game
         "beware,"
         puts "if you hit a mine it's game over."
         @lost = false
-
+        @flagged_nodes = Set.new()
     end
 
     def run
@@ -18,8 +19,9 @@ class Game
             play_turn
         end
 
+        puts @board.render
         puts "Congratulations! You cleared the board " if won? 
-        puts "Better luck next time!" if lost?
+        puts "KABOOM! Better luck next time!" if lost?
 
         exit
     end
@@ -35,8 +37,15 @@ class Game
     def play_turn 
         user_input = ''
         node = nil
+        flagging_bomb = false
         begin
             user_input = gets.chomp
+
+            if user_input.start_with?("flag ")
+                flagging_bomb = true
+                user_input = user_input[-3..-1]
+            end
+
             raise "Sorry, unrecognized input. It should be two numbers within "\
             "the range of the board seperated by a comma. (e.g. 1,1)"\
             unless valid_node?(user_input)
@@ -46,18 +55,17 @@ class Game
             puts exception.message
             retry 
         end
-        # begin 
-        #     raise "Sorry, unrecognized input. It should be two numbers within \
-        #     the range of the board seperated by a comma."\ 
-        #     unless valid_node?(user_input)
 
-        #     node = parse_node(user_input)
-        #     p node
-        # rescue 
-        #     # puts e.message
-        #     retry 
-        # end
-        @lost = @board.reveal_node(node[0], node[1]) #Lost if we hit a bomb
+        if flagging_bomb
+            puts "Flagging: " + user_input
+            @board.flag_node(node)
+        elsif @board.is_flag(node)
+            puts "Sorry, you previously flagged this node. Use the same "\
+            "'flag #{user_input}' command to unflag it to make it playable."
+        else
+            puts "Playing: " + user_input
+            @lost = @board.reveal_node(node) #Lost if we hit a bomb
+        end
     end
 
     def valid_node?(user_input)
