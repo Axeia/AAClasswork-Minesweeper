@@ -4,13 +4,21 @@ class Board
 
     def initialize(size = 9, number_of_bombs = nil)
         @grid = Array.new(size){ Array.new(size) { Tile.new() } }
-        @number_of_bombs = number_of_bombs || size
+        number_of_bombs = number_of_bombs || size
         @size = size
-        populate_grid
+        populate_grid(number_of_bombs)
     end
 
-    def populate_grid()
-        add_bombs
+    # For debugging / checking methods behave as expected in rspec
+    # Include bomb fields.
+    def set_grid(grid)
+        @grid = grid
+        @size = grid.length
+        calculate_number_of_neighbouring_bombs
+    end
+
+    def populate_grid(number_of_bombs)
+        add_bombs(number_of_bombs)
         calculate_number_of_neighbouring_bombs
     end
 
@@ -28,10 +36,10 @@ class Board
         end
     end
 
-    def add_bombs
+    def add_bombs(number_of_bombs)
         #Generate bomb positions
         bomb_positions = (0...@size).to_a.repeated_permutation(2).to_a.shuffle\
-        .take(@number_of_bombs)
+        .take(number_of_bombs)
         #Place bombs
         bomb_positions.each do |bomb_position| 
             @grid[bomb_position[0]][bomb_position[1]].bombify
@@ -92,14 +100,13 @@ class Board
         text
     end
 
-    def get_bomb_locations
-        
-    end
-
+    # Returns true is the node was a bomb
     def reveal_node(v,h, visited_nodes = [])
         if in_bounds?([v, h])
             @grid[v][h].reveal
-            unless @grid[v][h].is_bomb?
+            if @grid[v][h].is_bomb?
+                return true
+            else
                 adj_bomb_count = adjacent_bomb_count([v,h])
                 if adj_bomb_count > 0
                     @grid[v][h].value = adj_bomb_count.to_s
@@ -114,15 +121,26 @@ class Board
                         reveal_node(n[0], n[1], visited_nodes)
                     end
                 end
-
             end
         end
+
+        false
     end
 
     def adjacent_non_bomb_nodes(node)
         nodes = adjacent_nodes(node)
         nodes.delete_if{ |v| @grid[v[0]][v[1]].is_bomb? }
         nodes
+    end
+
+    def bombs_revealed?
+        return @grid.flatten.any?{ |tile| tile.is_bomb? && tile.revealed? }
+    end
+
+    def all_non_bombs_revealed?
+        return @grid.flatten.all? do |tile| 
+            (tile.is_bomb? && !tile.revealed?) || (tile.revealed? && !tile.is_bomb?)
+        end
     end
 end
 
