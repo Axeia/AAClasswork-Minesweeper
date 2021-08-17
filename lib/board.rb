@@ -139,7 +139,8 @@ class Board
 
     def all_non_bombs_revealed?
         return @grid.flatten.all? do |tile| 
-            (tile.is_bomb? && !tile.revealed?) || (tile.revealed? && !tile.is_bomb?)
+            (tile.is_bomb? && !tile.revealed?) || 
+            (tile.revealed? && !tile.is_bomb?)
         end
     end
 end
