@@ -1,5 +1,5 @@
 require_relative 'board.rb'
-require 'set'
+require 'yaml'
 
 class Game
     attr_accessor :board
@@ -10,10 +10,17 @@ class Game
         "beware,"
         puts "if you hit a mine it's game over."
         @lost = false
-        @flagged_nodes = Set.new()
+        @file_path = File.expand_path("../../saved_games/"\
+             + 'game_1.yaml', __FILE__)
     end
 
     def run
+        if File.exists?(@file_path)
+            puts "Found saved game " + @file_path
+            puts "Would you like to resume this game?"
+            load_game if ask_for_yes_or_no?
+        end
+
         until won? || lost? 
             puts @board.render
             play_turn
@@ -24,6 +31,30 @@ class Game
         puts "KABOOM! Better luck next time!" if lost?
 
         exit
+    end
+
+    def ask_to_run
+        puts "Would you like to resume? Yes/No"
+
+    end
+
+    def ask_for_yes_or_no?
+        user_input = ''
+        begin
+            user_input = gets.chomp
+            raise "You have to answer with either yes or no!"\
+            unless is_valid_yes_or_no?(user_input)
+
+        rescue => exception
+            puts exception.message
+            retry
+        end
+        
+        user_input == 'yes'
+    end
+
+    def is_valid_yes_or_no?(user_input)
+        user_input.downcase == 'yes' || user_input.downcase == 'no' 
     end
 
     def won?
@@ -40,6 +71,8 @@ class Game
         flagging_bomb = false
         begin
             user_input = gets.chomp
+
+            save_game if user_input == 'save'
 
             if user_input.start_with?("flag ")
                 flagging_bomb = true
@@ -66,6 +99,17 @@ class Game
             puts "Playing: " + user_input
             @lost = @board.reveal_node(node) #Lost if we hit a bomb
         end
+    end
+
+    def save_game
+        puts "Saving game " + @file_path  
+        File.write(@file_path, @board.to_yaml)
+        exit
+    end
+
+    def load_game
+        puts "Loading game " + @file_path
+        @board = YAML::load(File.read(@file_path))
     end
 
     def valid_node?(user_input)
