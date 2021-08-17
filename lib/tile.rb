@@ -1,3 +1,5 @@
+require 'colorize'
+
 class Tile
     attr_reader :value
     attr_accessor :flag
@@ -36,6 +38,25 @@ class Tile
         if flag
             return '⚑'
         end
-        revealed? ? @value : @hidden_value
+        if revealed? 
+            case @value 
+            when '1'
+                @value.blue
+            when '2'
+                @value.green
+            when '3'
+                @value.red
+            when '●'
+                @value.yellow.on_red
+            when '■'
+                @value.white.on_light_blue
+            when '▩'
+                @value.black.on_black
+            else
+                @value
+            end
+        else 
+            @hidden_value
+        end
     end
 end
