@@ -150,7 +150,7 @@ class Board
         @grid[v][h].flag = !@grid[v][h].flag
     end
 
-    def is_flag(node)
+    def is_flag?(node)
         v, h = node
         @grid[v][h].flag
     end

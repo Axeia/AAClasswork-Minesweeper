@@ -4,21 +4,37 @@ require 'yaml'
 class Game
     attr_accessor :board
 
+    class UserInputError < StandardError; end
+
     def initialize
         @board = Board.new
-        puts "Welcome to minesweeper! Reveal all nodes to win the game but "\
-        "beware,"
-        puts "if you hit a mine it's game over."
+        puts "Welcome to minesweeper! \n\nReveal all the cells to win the game "\
+        "but beware, if you hit a mine it's game over.\n"\
+        "Revealed cells show the number of bombs that around them, use this "\
+        "intel to your benefit.\n\n"\
+        "The commands are: \n"\
+        "- #{'save'.black.on_white}*      To save the game and exit out\n"\
+        "- #{'flag 2,3'.black.on_white}** To flag a cell, flagged cells "\
+        " cannot be played. Use this to\n #{' '*12}safeguard yourself against "\
+        " where you think a bomb is located\n"\
+        "- #{'2,3'.black.on_white}**      To just play the cell and hopefully"\
+        " not hit a bomb!\n\n"\
+        "* The next time you fire up the game it will ask you if you want to"\
+        " load up the last one\n"\
+        "** The numbers should be comma seperated (no space) and within the "\
+        "confines of the board.\n\n"
+
+
         @lost = false
         @file_path = File.expand_path("../../saved_games/"\
-             + 'game_1.yaml', __FILE__)
+            + 'game_1.yaml', __FILE__)
     end
 
     def run
         if File.exists?(@file_path)
             puts "Found saved game " + @file_path
             puts "Would you like to resume this game?"
-            load_game if ask_for_yes_or_no?
+            load_game if ask_and_got_yes?
         end
 
         until won? || lost? 
@@ -33,24 +49,21 @@ class Game
         exit
     end
 
-    def ask_to_run
-        puts "Would you like to resume? Yes/No"
-
-    end
-
-    def ask_for_yes_or_no?
+    def ask_and_got_yes?
         user_input = ''
         begin
             user_input = gets.chomp
-            raise "You have to answer with either yes or no!"\
+            
+            raise Game::UserInputError, \
+            "You have to answer with either 'Yes' or 'No'"\
             unless is_valid_yes_or_no?(user_input)
-
-        rescue => exception
-            puts exception.message
+            
+        rescue Game::UserInputError => e
+            puts e.message
             retry
+        else        
+            return user_input == 'yes'
         end
-        
-        user_input == 'yes'
     end
 
     def is_valid_yes_or_no?(user_input)
@@ -72,33 +85,45 @@ class Game
         begin
             user_input = gets.chomp
 
-            save_game if user_input == 'save'
-
-            if user_input.start_with?("flag ")
-                flagging_bomb = true
-                user_input = user_input[-3..-1]
+            if user_input == 'save'
+                save_game
+            elsif user_input.start_with?("flag ")
+                place_flag(user_input)
+            else
+                reveal_node(user_input)
             end
-
-            raise "Sorry, unrecognized input. It should be two numbers within "\
-            "the range of the board seperated by a comma. (e.g. 1,1)"\
-            unless valid_node?(user_input)
-
-            node = parse_node(user_input)
-        rescue => exception
+        rescue UserInputError => exception
             puts exception.message
             retry 
         end
+    end
 
-        if flagging_bomb
-            puts "Flagging: " + user_input
-            @board.flag_node(node)
-        elsif @board.is_flag(node)
-            puts "Sorry, you previously flagged this node. Use the same "\
-            "'flag #{user_input}' command to unflag it to make it playable."
+    def reveal_node(user_input)
+        raise_error_if_invalid_node_str(user_input)
+        node = parse_node(user_input)
+        puts "Playing: " + user_input
+        @lost = @board.reveal_node(node) #Lost if we hit a bomb
+    end
+
+    def place_flag(user_input)
+        str_flag_pos = user_input[-3..-1]
+        raise_error_if_invalid_node_str(str_flag_pos)
+
+        node = parse_node(str_flag_pos)
+        if @board.is_flag?(node)
+            puts "Unflagging " + str_flag_pos
         else
-            puts "Playing: " + user_input
-            @lost = @board.reveal_node(node) #Lost if we hit a bomb
+            puts "Flagging: " + str_flag_pos
         end
+
+        @board.flag_node(node)
+    end
+
+    def raise_error_if_invalid_node_str(string)
+        raise Game::UserInputError, 
+        "Sorry, unrecognized input. It should be two numbers within "\
+        "the range of the board \n seperated by a comma. (e.g. 1,1)"\
+        unless valid_node?(user_input)
     end
 
     def save_game
@@ -132,26 +157,5 @@ end
 
 if __FILE__ == $0
     game = Game.new
-
-    # tile_0 = Tile.new()
-    # tile_1 = Tile.new()
-    # tile_2 = Tile.new()
-
-    # tile_3 = Tile.new()
-    # tile_4 = Tile.new()
-    # tile_5 = Tile.new()
-
-    # tile_6 = Tile.new()
-    # tile_7 = Tile.new()
-    # tile_8 = Tile.new()
-    # tile_8.bombify
-    # grid = [
-    #     [tile_0, tile_1, tile_2],
-    #     [tile_3, tile_4, tile_5],
-    #     [tile_6, tile_7, tile_8]
-    # ]
-
-    # game.board.set_grid(grid)
-
     game.run()
 end
